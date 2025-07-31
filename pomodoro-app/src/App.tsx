@@ -6,9 +6,7 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Ruta principal */}
         <Route path="/" element={<PomodoroPage />} />
-        {/* Ruta de pantalla completa */}
         <Route path="/countdown" element={<FullscreenCountdown />} />
       </Routes>
     </BrowserRouter>

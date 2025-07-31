@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react"
-import { motion, AnimatePresence } from "framer-motion"
+import { motion } from "framer-motion"
 import type { HTMLMotionProps } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Card } from "@/components/ui/card"
+//import { Card } from "@/components/ui/card"
 import { useTimer } from "@/hooks/useTimer"
 import { useNavigate } from "react-router-dom"
 
@@ -49,14 +49,13 @@ const SplashCursor = (): JSX.Element => {
   return <motion.div {...motionProps} />
 }
 
-const [settingsApplied, setSettingsApplied] = useState(false)
 
-  // Agrega esto arriba del componente (después de imports)
-  const defaultImages = [
+// Agrega esto arriba del componente (después de imports)
+const defaultImages = [
     "/images/bg1.png",
     "/images/bg2.jpg",
     "/images/bg3.jpg"
-  ]
+]
 
 // Pomodoro hook that uses the actual useTimer
 const usePomodoro = () => {
@@ -118,25 +117,36 @@ export default function PomodoroPage() {
     if (savedLongBreak) setLongBreak(Number(savedLongBreak))
   }, [])
 
-    // Guardar tiempos y fondo en LocalStorage
+  const [selectedImage, setSelectedImage] = useState<string | null>(null)
+  const [settingsApplied, setSettingsApplied] = useState(false)
+
+
+  // guardar settings
   const handleSaveSettings = () => {
     localStorage.setItem("workTime", workTime.toString())
     localStorage.setItem("shortBreak", shortBreak.toString())
     localStorage.setItem("longBreak", longBreak.toString())
-    if (bgImage) localStorage.setItem("bgImage", bgImage)
+
+    if (selectedImage) {
+      localStorage.setItem("bgImage", selectedImage)
+    } else {
+      // si no seleccionó nada, por defecto la primera imagen
+      localStorage.setItem("bgImage", defaultImages[0])
+    }
+
     setSettingsApplied(true)
   }
 
-  // Subir imagen personalizada
+  // subir imagen
   const handleUpload = (file: File) => {
     const reader = new FileReader()
     reader.onloadend = () => {
-      setBgImage(reader.result as string)
-      localStorage.setItem("bgImage", reader.result as string)
+      if (reader.result) {
+        setSelectedImage(reader.result as string) // se guarda en el estado
+      }
     }
     reader.readAsDataURL(file)
   }
-
 
   const handleStart = () => {
     start()
