@@ -8,7 +8,7 @@ interface UseTimerReturn {
   isRunning: boolean;
 }
 
-export const useTimer = (initialTime: number = 1500): UseTimerReturn => { // 25 min por default
+export const useTimer = (initialTime: number = 1500): UseTimerReturn => {
   const [time, setTime] = useState<number>(initialTime);
   const [isRunning, setIsRunning] = useState<boolean>(false);
 
@@ -21,6 +21,10 @@ export const useTimer = (initialTime: number = 1500): UseTimerReturn => { // 25 
     }
     return () => clearInterval(interval);
   }, [isRunning]);
+
+  useEffect(() => {
+    setTime(initialTime);
+  }, [initialTime]);
 
   const start = () => setIsRunning(true);
   const pause = () => setIsRunning(false);

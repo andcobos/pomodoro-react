@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card } from "@/components/ui/card"
 import { useTimer } from "@/hooks/useTimer"
+import { useNavigate } from "react-router-dom"
 
 // Splash cursor effect component
 const SplashCursor = (): JSX.Element => {
@@ -48,6 +49,15 @@ const SplashCursor = (): JSX.Element => {
   return <motion.div {...motionProps} />
 }
 
+const [settingsApplied, setSettingsApplied] = useState(false)
+
+  // Agrega esto arriba del componente (después de imports)
+  const defaultImages = [
+    "/images/bg1.png",
+    "/images/bg2.jpg",
+    "/images/bg3.jpg"
+  ]
+
 // Pomodoro hook that uses the actual useTimer
 const usePomodoro = () => {
   const [workTime, setWorkTime] = useState(25)
@@ -86,7 +96,47 @@ export default function PomodoroPage() {
   const { time, isRunning, start, pause, reset, workTime, setWorkTime, shortBreak, setShortBreak, longBreak, setLongBreak } =
     usePomodoro()
 
+  const navigate = useNavigate()
+
   const [showSplash, setShowSplash] = useState(false)
+
+  //imagen de fondo
+  const [bgImage, setBgImage] = useState<string | null>(null);
+  // Cargar imagen al iniciar
+
+  // Cargar datos guardados
+  useEffect(() => {
+    const savedImage = localStorage.getItem("bgImage")
+    if (savedImage) setBgImage(savedImage)
+
+    const savedWorkTime = localStorage.getItem("workTime")
+    const savedShortBreak = localStorage.getItem("shortBreak")
+    const savedLongBreak = localStorage.getItem("longBreak")
+
+    if (savedWorkTime) setWorkTime(Number(savedWorkTime))
+    if (savedShortBreak) setShortBreak(Number(savedShortBreak))
+    if (savedLongBreak) setLongBreak(Number(savedLongBreak))
+  }, [])
+
+    // Guardar tiempos y fondo en LocalStorage
+  const handleSaveSettings = () => {
+    localStorage.setItem("workTime", workTime.toString())
+    localStorage.setItem("shortBreak", shortBreak.toString())
+    localStorage.setItem("longBreak", longBreak.toString())
+    if (bgImage) localStorage.setItem("bgImage", bgImage)
+    setSettingsApplied(true)
+  }
+
+  // Subir imagen personalizada
+  const handleUpload = (file: File) => {
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      setBgImage(reader.result as string)
+      localStorage.setItem("bgImage", reader.result as string)
+    }
+    reader.readAsDataURL(file)
+  }
+
 
   const handleStart = () => {
     start()
@@ -105,7 +155,7 @@ export default function PomodoroPage() {
         {[...Array(20)].map((_, i) => (
           <motion.div
             key={i}
-            className="absolute w-2 h-2 bg-orange-200 rounded-full opacity-20"
+            className="absolute w-2 h-2 bg-blue-200 rounded-full opacity-30"
             animate={{
               x: [0, 100, 0],
               y: [0, -100, 0],
@@ -139,7 +189,7 @@ export default function PomodoroPage() {
           StudyTime
         </motion.h1>
         <nav className="flex space-x-8">
-          {["Home", "About", "Contact", "Sign up"].map((item, index) => (
+          {["Main", "About"].map((item, index) => (
             <motion.a
               key={item}
               href="#"
@@ -219,13 +269,15 @@ export default function PomodoroPage() {
                 {isRunning ? "Pause" : "Start"}
               </Button>
             </motion.div>
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+
+            <motion.div whileHover={{ scale: settingsApplied ? 1.05 : 1 }} whileTap={{ scale: settingsApplied ? 0.95 : 1 }}>
               <Button
-                onClick={reset}
                 variant="outline"
                 className="px-8 py-3 rounded-full text-lg font-semibold border-2 bg-transparent"
+                disabled={!settingsApplied}
+                onClick={() => navigate("/fullscreen")}
               >
-                Reset
+                Fullscreen
               </Button>
             </motion.div>
           </div>
@@ -267,17 +319,33 @@ export default function PomodoroPage() {
 
             {/* Right Column - Theme Settings */}
             <div className="space-y-6">
-              <motion.div initial={{ x: 50, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: 0.9 }}>
-                <Label className="text-gray-700 font-medium mb-2 block">Default Image</Label>
-                <Card className="h-32 bg-gray-100 rounded-2xl flex items-center justify-center">
-                  <p className="text-gray-500">Image Preview</p>
-                </Card>
-              </motion.div>
+              {/* Imagenes por default */}
+              <Label className="text-gray-700 font-medium mb-2 block">Default Images</Label>
+              <div className="flex gap-4 mb-4">
+                {defaultImages.map((img) => (
+                  <img
+                    key={img}
+                    src={img}
+                    alt="background option"
+                    onClick={() => setBgImage(img)}
+                    className={`w-20 h-14 rounded-lg cursor-pointer border-2 ${
+                      bgImage === img ? "border-blue-500" : "border-transparent"
+                    }`}
+                  />
+                ))}
+              </div>
 
-              <motion.div initial={{ x: 50, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: 1.0 }}>
-                <Label className="text-gray-700 font-medium mb-2 block">Search Themes / Upload:</Label>
-                <Input type="file" accept="image/*" className="rounded-full border-2 px-4 py-3" />
-              </motion.div>
+              {/* Subir imagen */}
+              <Label className="text-gray-700 font-medium mb-2 block">Upload Image</Label>
+              <Input
+                type="file"
+                accept="image/*"
+                className="rounded-full border-2 px-4 py-3"
+                onChange={(e) => {
+                  const file = e.target.files?.[0]
+                  if (file) handleUpload(file)
+                }}
+              />
             </div>
           </div>
 
@@ -289,46 +357,17 @@ export default function PomodoroPage() {
             transition={{ delay: 1.1 }}
           >
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Button className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-full text-lg font-semibold">
+              <Button
+                className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-full text-lg font-semibold"
+                onClick={handleSaveSettings}
+              >
                 Apply Settings
               </Button>
             </motion.div>
           </motion.div>
         </motion.div>
       </div>
-
-      {/* Splash Effect */}
-      <AnimatePresence>
-        {showSplash && (
-          <motion.div
-            className="fixed inset-0 pointer-events-none z-40"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            {[...Array(12)].map((_, i) => (
-              <motion.div
-                key={i}
-                className="absolute w-4 h-4 bg-orange-400 rounded-full"
-                initial={{
-                  x: "50vw",
-                  y: "50vh",
-                  scale: 0,
-                }}
-                animate={{
-                  x: `${50 + Math.cos((i * 30 * Math.PI) / 180) * 40}vw`,
-                  y: `${50 + Math.sin((i * 30 * Math.PI) / 180) * 40}vh`,
-                  scale: [0, 1, 0],
-                }}
-                transition={{
-                  duration: 0.6,
-                  ease: "easeOut",
-                }}
-              />
-            ))}
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
+    
   )
 }
