@@ -1,14 +1,14 @@
-"use client"
-
 import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
+import type { HTMLMotionProps } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card } from "@/components/ui/card"
+import { useTimer } from "@/hooks/useTimer"
 
 // Splash cursor effect component
-const SplashCursor = () => {
+const SplashCursor = (): JSX.Element => {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
   const [isClicking, setIsClicking] = useState(false)
 
@@ -31,41 +31,47 @@ const SplashCursor = () => {
     }
   }, [])
 
-  return (
-    <motion.div
-      className="fixed top-0 left-0 w-6 h-6 bg-orange-500 rounded-full pointer-events-none z-50 mix-blend-difference"
-      animate={{
-        x: mousePosition.x - 12,
-        y: mousePosition.y - 12,
-        scale: isClicking ? 1.5 : 1,
-      }}
-      transition={{
-        type: "spring",
-        stiffness: 500,
-        damping: 28,
-      }}
-    />
-  )
+  const motionProps: HTMLMotionProps<"div"> = {
+    className: "fixed top-0 left-0 w-6 h-6 bg-orange-500 rounded-full pointer-events-none z-50 mix-blend-difference",
+    animate: {
+      x: mousePosition.x - 12,
+      y: mousePosition.y - 12,
+      scale: isClicking ? 1.5 : 1,
+    },
+    transition: {
+      type: "spring",
+      stiffness: 500,
+      damping: 28,
+    },
+  }
+
+  return <motion.div {...motionProps} />
 }
 
-// Mock hook interface - replace with your actual hook
+// Pomodoro hook that uses the actual useTimer
 const usePomodoro = () => {
-  const [time, setTime] = useState({ hours: 0, minutes: 25, seconds: 0 })
-  const [isRunning, setIsRunning] = useState(false)
   const [workTime, setWorkTime] = useState(25)
   const [shortBreak, setShortBreak] = useState(5)
   const [longBreak, setLongBreak] = useState(15)
-
-  const start = () => setIsRunning(true)
+  
+  const { time: timeInSeconds, start, pause, reset: resetTimer, isRunning } = useTimer(workTime * 60)
+  
+  // Convert seconds to hours, minutes, seconds format
+  const hours = Math.floor(timeInSeconds / 3600)
+  const minutes = Math.floor((timeInSeconds % 3600) / 60)
+  const seconds = timeInSeconds % 60
+  
+  const time = { hours, minutes, seconds }
+  
   const reset = () => {
-    setIsRunning(false)
-    setTime({ hours: 0, minutes: workTime, seconds: 0 })
+    resetTimer()
   }
 
   return {
     time,
     isRunning,
     start,
+    pause,
     reset,
     workTime,
     setWorkTime,
@@ -77,7 +83,7 @@ const usePomodoro = () => {
 }
 
 export default function PomodoroPage() {
-  const { time, isRunning, start, reset, workTime, setWorkTime, shortBreak, setShortBreak, longBreak, setLongBreak } =
+  const { time, isRunning, start, pause, reset, workTime, setWorkTime, shortBreak, setShortBreak, longBreak, setLongBreak } =
     usePomodoro()
 
   const [showSplash, setShowSplash] = useState(false)
@@ -207,11 +213,10 @@ export default function PomodoroPage() {
           <div className="flex justify-center space-x-4">
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <Button
-                onClick={handleStart}
-                disabled={isRunning}
+                onClick={isRunning ? pause : handleStart}
                 className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-full text-lg font-semibold"
               >
-                Start
+                {isRunning ? "Pause" : "Start"}
               </Button>
             </motion.div>
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
