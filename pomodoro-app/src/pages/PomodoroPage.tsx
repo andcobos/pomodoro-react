@@ -156,7 +156,7 @@ export default function PomodoroPage() {
       </motion.header>
 
       {/* Main Content */}
-      <div className="max-w-4xl mx-auto px-6 relative z-10">
+      <div className="w-full px-6 relative z-10">
         {/* Timer Section */}
         <motion.div
           className="text-center mb-12"
@@ -236,6 +236,7 @@ export default function PomodoroPage() {
           initial={{ y: 100, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.6 }}
+          className="max-w-4xl mx-auto"
         >
           <h3 className="text-2xl font-bold text-gray-800 mb-6">Customize</h3>
 
