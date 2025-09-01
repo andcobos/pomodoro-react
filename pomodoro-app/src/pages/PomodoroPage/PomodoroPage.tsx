@@ -45,7 +45,7 @@ export default function PomodoroPage() {
   return (
     <div className="min-h-screen bg-gray-50 relative overflow-hidden">
       <motion.header className="flex justify-between items-center p-6">
-        <h1 className="text-2xl font-bold text-gray-800">StudyTime</h1>
+        <h1 className="text-2xl font-bold text-gray-800">Tik Tomato</h1>
       </motion.header>
 
       <section className="text-center mb-10">
