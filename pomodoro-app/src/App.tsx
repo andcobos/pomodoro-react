@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import PomodoroPage from "./pages/PomodoroPage";
+import PomodoroPage from "./pages/PomodoroPage/PomodoroPage";
 import FullscreenCountdown from "./pages/FullscreenCountdown";
 
 function App() {
