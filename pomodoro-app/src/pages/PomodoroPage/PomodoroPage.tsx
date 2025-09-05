@@ -19,6 +19,15 @@ export default function PomodoroPage() {
   const [bgImage, setBgImage] = useState<string | null>(initial.bgImage);
   const [settingsApplied, setSettingsApplied] = useState(false);
 
+  //Seleccionar font
+  const [fontFamily, setFontFamily] = useState<string>(
+    localStorage.getItem("countdownFont") || "bitter"
+  );
+  const handleFontChange = (value: string) => {
+    setFontFamily(value);
+    localStorage.setItem("countdownFont", value);
+  };
+
   const {
     mode, finished, isFullscreen,
     timeInSeconds, isRunning,
@@ -38,7 +47,9 @@ export default function PomodoroPage() {
   };
 
   const applySettings = () => {
+    // opcional: persistir la fuente junto con los otros ajustes
     saveSettings({ workTime, shortBreak, longBreak, bgImage });
+    localStorage.setItem("countdownFont", fontFamily); // 👈 NUEVO
     setSettingsApplied(true);
   };
 
@@ -74,6 +85,7 @@ export default function PomodoroPage() {
           onFullscreen={() => {
             // persiste cosas útiles antes de entrar
             saveSettings({ workTime, shortBreak, longBreak, bgImage });
+            localStorage.setItem("countdownFont", fontFamily); // 👈 NUEVO
             enterFullscreen();
           }}
           fullscreenDisabled={!settingsApplied}
@@ -91,12 +103,32 @@ export default function PomodoroPage() {
             onChangeShort={setShortBreak}
             onChangeLong={setLongBreak}
           />
-          <BackgroundPicker
-            images={DEFAULT_IMAGES}
-            selected={bgImage}
-            onSelect={setBgImage}
-            onUpload={handleUpload}
-          />
+
+          <div className="space-y-6">
+            <BackgroundPicker
+              images={DEFAULT_IMAGES}
+              selected={bgImage}
+              onSelect={setBgImage}
+              onUpload={handleUpload}
+            />
+
+            {/* 👇selector de fuente */}
+            <div>
+              <label className="block text-gray-700 font-medium mb-2">
+                Countdown Font
+              </label>
+              <select
+                value={fontFamily}
+                onChange={(e) => handleFontChange(e.target.value)}
+                className="w-full border border-gray-300 rounded-full px-4 py-2 bg-white text-gray-800 shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
+              >
+                <option value="bitter">Bitter</option>
+                <option value="cinzel">Cinzel</option>
+                <option value="blackops">Black Ops One</option>
+                <option value="edunsw">Edu NSW ACT Cursive</option>
+              </select>
+            </div>
+          </div>
         </div>
 
         <div className="text-center mt-8">
@@ -122,6 +154,7 @@ export default function PomodoroPage() {
           onReset={() => resetTimer()}
           onExit={exitFullscreen}
           onSelectMode={(m) => switchTo(m)}
+          fontFamily={fontFamily} // 👈 NUEVO
         />
       )}
     </div>
